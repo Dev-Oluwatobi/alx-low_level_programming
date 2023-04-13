@@ -1,45 +1,37 @@
-#include <stdio.h>
+#include "main.h"
 #include <stdlib.h>
-#include <unistd.h>
 
 /**
- * read_textfile - this parameter reads a text file and prints it to stdout
- * @filename: this is a pointer to the file name
- * @letters: the number of letter to be read and printed
+ * read_textfile - this parameter reads a text file and prints it
+ * @filename:  pointer to the filename
+ * @letters: number of letters the function should read and print.
+ *
+ * Return: If the function fails or filename is NULL 
  */
+ssize_t read_textfile(const char *filename, size_t letters)
+{
+	ssize_t o, r, w;
+	char *buffer;
 
-ssize_t read_textfile(const char *filename, size_t letters) {
-    if (filename == NULL) {
-        return 0;
-    }
+	if (filename == NULL)
+		return (0);
 
-    FILE *file = fopen(filename, "r");
-    if (file == NULL) {
-        return 0;
-    }
+	buffer = malloc(sizeof(char) * letters);
+	if (buffer == NULL)
+		return (0);
 
-    char *buffer = malloc(letters + 1);
-    if (buffer == NULL) {
-        fclose(file);
-        return 0;
-    }
+	o = open(filename, O_RDONLY);
+	r = read(o, buffer, letters);
+	w = write(STDOUT_FILENO, buffer, r);
 
-    ssize_t bytes_read = fread(buffer, sizeof(char), letters, file);
-    if (bytes_read < 0) {
-        fclose(file);
-        free(buffer);
-        return 0;
-    }
+	if (o == -1 || r == -1 || w == -1 || w != r)
+	{
+		free(buffer);
+		return (0);
+	}
 
-    ssize_t bytes_written = write(STDOUT_FILENO, buffer, bytes_read);
-    if (bytes_written < 0 || bytes_written != bytes_read) {
-        fclose(file);
-        free(buffer);
-        return 0;
-    }
+	free(buffer);
+	close(o);
 
-    fclose(file);
-    free(buffer);
-
-    return bytes_read;
+	return (w);
 }
